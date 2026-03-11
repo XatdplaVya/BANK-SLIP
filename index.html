@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Glassmorphism Thai QR</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Animated Gradient Background */
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #333;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Container */
+        .glass-container {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        h2 { 
+            text-align: center; 
+            color: #2c3e50; 
+            margin-top: 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #34495e; font-size: 14px;}
+        
+        input[type="file"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3);
+        }
+
+        .result-box {
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #walletIdDisplay { 
+            background: rgba(255, 255, 255, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+            color: #27ae60; 
+            font-weight: 700; 
+            font-size: 16px; 
+            margin-bottom: 20px; 
+            text-align: center;
+        }
+
+        canvas.hidden { display: none; } 
+        
+        /* The preview image shown on web */
+        #previewImage {
+            max-width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-container">
+    <h2>✨ Premium QR Generator</h2>
+
+    <div class="form-group">
+        <label>၁။ Wallet ID ပါသော QR ပုံကို ရွေးပါ</label>
+        <input type="file" id="qrInput" accept="image/*">
+    </div>
+
+    <canvas id="hiddenCanvas" class="hidden"></canvas>
+    
+    <canvas id="exportCanvas" class="hidden" width="1080" height="1080"></canvas>
+
+    <div id="walletSection" style="display:none;">
+        <div id="walletIdDisplay">Wallet ID: <span id="extractedId"></span></div>
+        
+        <div class="form-group">
+            <label>၂။ ထုတ်လိုသော ငွေပမာဏ (Baht)</label>
+            <input type="number" id="amountInput" value="500" min="1" step="0.5">
+        </div>
+
+        <div class="form-group">
+            <label>၃။ Modern Background ရွေးပါ</label>
+            <select id="designSelect">
+                <option value="https://raw.githubusercontent.com/XatdplaVya/VPN-MOD/refs/heads/main/file_000000004b4c71fab4bb0cbc9e6c0e96.png">Neon Abstract</option>
+                <option value="https://raw.githubusercontent.com/XatdplaVya/VPN-MOD/refs/heads/main/file_000000005aec71fab7056d13fe398347.png">Cyberpunk City</option>
+                <option value="https://raw.githubusercontent.com/XatdplaVya/VPN-MOD/refs/heads/main/file_000000002ff471faabe2c3a3a270ec71.png">Pastel Anime Sky</option>
+                <option value="https://raw.githubusercontent.com/XatdplaVya/VPN-MOD/refs/heads/main/file_00000000857471fa91d376e7ccc28f4f.png">Gradient Mesh</option>
+            </select>
+        </div>
+
+        <button onclick="generateNewQR()">🪄 Generate Magic QR</button>
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <p style="margin: 0; font-weight: 700; color: #2c3e50;">သင့်အတွက် Design အသစ်</p>
+        <img id="previewImage" alt="Generated QR">
+        <button style="background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);" onclick="downloadQR()">📥 Download HD Image</button>
+    </div>
+</div>
+
+<script>
+    let currentWalletId = "";
+
+    document.getElementById('qrInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.getElementById('hiddenCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                if (code) {
+                    extractWalletId(code.data);
+                } else {
+                    alert("QR Code ကို ဖတ်၍မရပါ။ ပုံအကြည် ထပ်စမ်းကြည့်ပါ။");
+                }
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function extractWalletId(payload) {
+        const regex = /0016A000000677010111(0[1-3])(\d{2})(\d+)/;
+        const match = payload.match(regex);
+        
+        if (match) {
+            const idType = match[1];
+            const idLength = parseInt(match[2], 10);
+            const extracted = match[3].substring(0, idLength);
+            
+            if (idType === '01' && extracted.startsWith('0066')) {
+                currentWalletId = '0' + extracted.substring(4);
+            } else {
+                currentWalletId = extracted;
+            }
+            
+            document.getElementById('extractedId').innerText = currentWalletId;
+            document.getElementById('walletSection').style.display = 'block';
+            document.getElementById('resultBox').style.display = 'none';
+        } else {
+            alert("PromptPay Wallet ID ရှာမတွေ့ပါ။");
+        }
+    }
+
+    function crc16(data) {
+        let crc = 0xFFFF;
+        for (let i = 0; i < data.length; i++) {
+            crc ^= data.charCodeAt(i) << 8;
+            for (let j = 0; j < 8; j++) {
+                if ((crc & 0x8000) !== 0) { crc = (crc << 1) ^ 0x1021; } 
+                else { crc = crc << 1; }
+            }
+        }
+        return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    function createPromptPayPayload(id, amount) {
+        let target = id.replace(/[^0-9]/g, '');
+        let accInfo = "0016A000000677010111";
+        
+        if (target.length >= 15) { accInfo += "0315" + target; } 
+        else if (target.length === 13) { accInfo += "0213" + target; } 
+        else { accInfo += "01130066" + target.substring(1); }
+        
+        let accInfoLen = accInfo.length.toString().padStart(2, '0');
+        let tag29 = "29" + accInfoLen + accInfo;
+        
+        let amountStr = parseFloat(amount).toFixed(2);
+        let amountLen = amountStr.length.toString().padStart(2, '0');
+        let tag54 = "54" + amountLen + amountStr;
+        
+        let payload = "000201010212" + tag29 + "5802TH5303764" + tag54 + "6304";
+        payload += crc16(payload);
+        return payload;
+    }
+
+    function generateNewQR() {
+        if (!currentWalletId) return;
+        
+        const amount = document.getElementById('amountInput').value;
+        const bgUrl = document.getElementById('designSelect').value;
+        
+        if (amount <= 0) {
+            alert("Amount အမှန်ထည့်ပါ။");
+            return;
+        }
+
+        const payload = createPromptPayPayload(currentWalletId, amount);
+        const exportCanvas = document.getElementById('exportCanvas');
+        const ctx = exportCanvas.getContext('2d');
+
+        const bgImg = new Image();
+        bgImg.crossOrigin = "Anonymous";
+        bgImg.src = bgUrl;
+
+        bgImg.onload = function() {
+            // ၁။ နောက်ခံပုံကို Canvas အပြည့်ဆွဲခြင်း (1080x1080)
+            ctx.drawImage(bgImg, 0, 0, 1080, 1080);
+
+            // ၂။ အလယ်မှာ Glassmorphism Card (Frosted Glass Effect အတု) ပြုလုပ်ခြင်း
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)"; // QR ဖတ်ရလွယ်အောင် Opaque နည်းနည်းများများထားသည်
+            ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 15;
+            
+            // Card Shape ဆွဲခြင်း
+            ctx.beginPath();
+            ctx.roundRect(140, 140, 800, 800, 40);
+            ctx.fill();
+            
+            // Shadow Reset
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Card Border အဖြူရောင် ရေးရေးလေးထည့်ခြင်း
+            ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // ၃။ စာသားများ ရေးသားခြင်း (Modern Typography)
+            ctx.fillStyle = "#1e293b";
+            ctx.textAlign = "center";
+            
+            ctx.font = "bold 45px Poppins, sans-serif";
+            ctx.fillText("SCAN TO PAY", 540, 240);
+
+            ctx.fillStyle = "#475569";
+            ctx.font = "30px Poppins, sans-serif";
+            ctx.fillText("PromptPay ID: " + currentWalletId, 540, 300);
+
+            // ၄။ QR Code ကို ဆွဲခြင်း
+            const qr = new QRious({
+                value: payload,
+                size: 450,
+                backgroundAlpha: 0,
+                foreground: '#0f172a',
+                level: 'H'
+            });
+
+            const qrImg = new Image();
+            qrImg.src = qr.toDataURL();
+            qrImg.onload = function() {
+                // QR ကို Card အလယ်တည့်တည့်မှာ ထားခြင်း
+                ctx.drawImage(qrImg, 315, 330, 450, 450);
+                
+                // ၅။ Amount ဖော်ပြခြင်း
+                ctx.fillStyle = "#2563eb"; // Blue Color
+                ctx.font = "bold 65px Poppins, sans-serif";
+                ctx.fillText(amount + " THB", 540, 860);
+
+                // Export လုပ်မည့်ပုံကို Web ပေါ်ရှိ Image Tag သို့ ပြောင်းထည့်ပေးခြင်း
+                const finalDataUrl = exportCanvas.toDataURL("image/jpeg", 0.9);
+                document.getElementById('previewImage').src = finalDataUrl;
+                document.getElementById('resultBox').style.display = 'block';
+            }
+        };
+        
+        bgImg.onerror = function() {
+            alert("နောက်ခံပုံကို ယူရာတွင် အခက်အခဲရှိပါသည်။");
+        }
+    }
+
+    function downloadQR() {
+        const canvas = document.getElementById('exportCanvas');
+        const link = document.createElement('a');
+        link.download = 'Premium_QR_' + currentWalletId + '.jpg';
+        // High quality JPEG ဖြင့် ဒေါင်းလုဒ်ဆွဲခြင်း
+        link.href = canvas.toDataURL("image/jpeg", 1.0); 
+        link.click();
+    }
+</script>
+
+</body>
+</html>
